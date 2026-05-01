@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calm Pieces+ Final</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Exact Colors from your Reference Photo */
+            --bg-gradient: radial-gradient(circle at center, #c2e9fb 0%, #a1c4fd 100%);
+            --glass: rgba(255, 255, 255, 0.22);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            
+            --btn-play: linear-gradient(180deg, #9b59b6, #8e44ad);
+            --btn-daily: linear-gradient(180deg, #2ecc71, #27ae60);
+            --btn-multi: linear-gradient(180deg, #e67e22, #d35400);
+            --btn-leader: linear-gradient(180deg, #f1c40f, #f39c12);
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            font-family: 'Quicksand', sans-serif;
+            background: var(--bg-gradient);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; touch-action: none;
+        }
+
+        .screen {
+            position: absolute; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s;
+        }
+
+        .hidden { opacity: 0; pointer-events: none; transform: scale(1.1); }
+
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(35px);
+            border: 1.5px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 40px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+            color: white;
+        }
+
+        h1 { font-size: 48px; margin: 0 0 30px 0; line-height: 0.9; text-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .menu-btn {
+            width: 100%; height: 58px; margin: 12px 0;
+            border-radius: 30px; border: none;
+            color: white; font-weight: 700; font-size: 17px;
+            letter-spacing: 1px; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transition: transform 0.1s ease;
+        }
+        .menu-btn:active { transform: scale(0.94); }
+
+        /* Specific Button Classes */
+        .play { background: var(--btn-play); }
+        .daily { background: var(--btn-daily); }
+        .multi { background: var(--btn-multi); }
+        .leader { background: var(--btn-leader); }
+
+        #canvas-container { 
+            width: 90vw; height: 60vh; 
+            background: rgba(0,0,0,0.15); border-radius: 30px; 
+            overflow: hidden; margin-top: 20px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; height: 85px;
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(20px);
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid var(--glass-border); color: white; font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* Matchmaking Loader */
+        .loader { border: 4px solid #fff; border-radius: 50%; border-top: 4px solid transparent; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- SCREEN 1: THE PHOTO-MATCHED MENU -->
+    <div id="screen-menu" class="screen">
+        <div class="glass-panel">
+            <h1>Calm<br>Pieces+</h1>
+            <button class="menu-btn play" onclick="showScreen('screen-diff')">PLAY</button>
+            <button class="menu-btn daily" onclick="showScreen('screen-daily')">DAILY CHALLENGE</button>
+            <button class="menu-btn multi" onclick="showScreen('screen-multi')">MULTIPLAYER</button>
+            <button class="menu-btn leader">LEADERBOARD</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: DAILY CHALLENGE -->
+    <div id="screen-daily" class="screen hidden">
+        <div class="glass-panel">
+            <div style="background: rgba(0,0,0,0.1); padding: 20px; border-radius: 25px; margin-bottom: 20px;">
+                <p style="margin:0; opacity:0.8">New Challenge In</p>
+                <h2 style="margin:5px 0; color:#fff59d;">07:44:12</h2>
+            </div>
+            <img src="puzzle_image.jpg" style="width:100%; border-radius:20px; margin-bottom:20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+            <button class="menu-btn daily" onclick="startGame(15, 10)">PLAY CHALLENGE</button>
+            <button class="menu-btn" style="background:rgba(255,255,255,0.1)" onclick="showScreen('screen-menu')">BACK</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: MULTIPLAYER SEARCH -->
+    <div id="screen-multi" class="screen hidden">
+        <div class="glass-panel">
+            <h2>Multiplayer VS</h2>
+            <div style="display:flex; justify-content:space-between; margin:20px 0;">
+                <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:20px; width:40%;"><b>You</b><br>⭐ 1.2k</div>
+                <div style="align-self:center; font-weight:bold;">VS</div>
+                <div id="opp-card" style="background:rgba(255,255,255,0.1); padding:15px; border-radius:20px; width:40%;"><b>Searching</b><br>...</div>
+            </div>
+            <div id="search-status">
+                <div class="loader"></div>
+                <p>Finding Player...</p>
+            </div>
+            <button class="menu-btn" style="background:#e74c3c" onclick="showScreen('screen-menu')">CANCEL</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: DIFFICULTY -->
+    <div id="screen-diff" class="screen hidden">
+        <div class="glass-panel">
+            <h2>Choose Size</h2>
+            <button class="menu-btn daily" onclick="startGame(4, 3)">12 PIECES</button>
+            <button class="menu-btn play" onclick="startGame(10, 10)">100 PIECES</button>
+            <button class="menu-btn multi" onclick="startGame(20, 15)">300 PIECES</button>
+            <button class="menu-btn leader" onclick="startGame(25, 20)">500 PIECES</button>
+            <button class="menu-btn" style="background:rgba(255,255,255,0.1)" onclick="showScreen('screen-menu')">BACK</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 5: THE GAME -->
+    <div id="screen-game" class="screen hidden">
+        <div style="position:absolute; top:30px; width:80%; display:flex; justify-content:space-between; background:var(--glass); padding:15px 25px; border-radius:30px; color:white; backdrop-filter:blur(10px);">
+            <span id="timer">00:00</span>
+            <span id="vs-bar" style="display:none;">VS Progress: 0%</span>
+            <span>⭐ ⭐ ⭐</span>
+        </div>
+        <div id="canvas-container"><canvas id="puzzleCanvas"></canvas></div>
+        <button class="menu-btn" style="width:160px; background:rgba(0,0,0,0.4); margin-top:30px;" onclick="location.reload()">QUIT GAME</button>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+        <span>🎵 MUSIC</span>
+        <span>🧩 PUZZLES</span>
+        <span>🎁 REWARDS</span>
+        <span>⚙️ SETTINGS</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('puzzleCanvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.src = 'puzzle_image.jpg';
+
+        let pieces = [], grabbed = null, cols, rows, pW, pH, startTime, timerInt, isVS = false;
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if(id === 'screen-multi') {
+                setTimeout(() => {
+                    document.getElementById('opp-card').innerHTML = "<b>Alex_Pro</b><br>⭐ 1.5k";
+                    document.getElementById('search-status').innerHTML = "<p style='color:#2ecc71'>Match Found!</p>";
+                    setTimeout(() => { isVS = true; startGame(8, 6); }, 1500);
+                }, 3000);
+            }
+        }
+
+        function startGame(c, r) {
+            cols = c; rows = r;
+            canvas.width = window.innerWidth * 0.85;
+            canvas.height = window.innerHeight * 0.55;
+            pW = canvas.width / cols; pH = canvas.height / rows;
+            showScreen('screen-game');
+            if(isVS) document.getElementById('vs-bar').style.display = 'block';
+            createPieces();
+            startTime = Date.now();
+            timerInt = setInterval(updateTimer, 1000);
+            animate();
+        }
+
+        function createPieces() {
+            pieces = [];
+            for(let y=0; y<rows; y++) {
+                for(let x=0; x<cols; x++) {
+                    pieces.push({
+                        sx: (x * img.naturalWidth)/cols, sy: (y * img.naturalHeight)/rows,
+                        sw: img.naturalWidth/cols, sh: img.naturalHeight/rows,
+                        x: Math.random() * (canvas.width - pW), y: Math.random() * (canvas.height - pH),
+                        cx: x * pW, cy: y * pH, snapped: false
+                    });
+                }
+            }
+        }
+
+        function updateTimer() {
+            let sec = Math.floor((Date.now() - startTime)/1000);
+            document.getElementById('timer').innerText = Math.floor(sec/60).toString().padStart(2,'0') + ":" + (sec%60).toString().padStart(2,'0');
+            if(isVS) {
+                let p = Math.round((pieces.filter(f=>f.snapped).length/pieces.length)*100);
+                document.getElementById('vs-bar').innerText = `You: ${p}% | Opponent: ${Math.min(99, p+2)}%`;
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pieces.forEach(p => {
+                ctx.drawImage(img, p.sx, p.sy, p.sw, p.sh, p.x, p.y, pW, pH);
+                if(!p.snapped) { ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.strokeRect(p.x, p.y, pW, pH); }
+            });
+        }
+
+        canvas.ontouchstart = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.touches[0].clientX - rect.left;
+            const my = e.touches[0].clientY - rect.top;
+            for(let i=pieces.length-1; i>=0; i--) {
+                let p = pieces[i];
+                if(!p.snapped && mx > p.x && mx < p.x + pW && my > p.y && my < p.y + pH) { grabbed = p; return; }
+            }
+        };
+
+        canvas.ontouchmove = (e) => {
+            if(!grabbed) return;
+            const rect = canvas.getBoundingClientRect();
+            grabbed.x = e.touches[0].clientX - rect.left - pW/2;
+            grabbed.y = e.touches[0].clientY - rect.top - pH/2;
+            draw(); e.preventDefault();
+        };
+
+        canvas.ontouchend = () => {
+            if(!grabbed) return;
+            if(Math.abs(grabbed.x - grabbed.cx) < 25 && Math.abs(grabbed.y - grabbed.cy) < 25) {
+                grabbed.x = grabbed.cx; grabbed.y = grabbed.cy; grabbed.snapped = true;
+            }
+            grabbed = null;
+            if(pieces.every(p => p.snapped)) { 
+                clearInterval(timerInt); 
+                alert(isVS ? "VICTORY! You finished first! 🏆" : "PUZZLE COMPLETE! ⭐⭐⭐"); 
+            }
+        };
+
+        function animate() { draw(); requestAnimationFrame(animate); }
+    </script>
+</body>
+</html>
