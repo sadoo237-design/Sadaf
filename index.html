@@ -161,9 +161,26 @@
     <script>
         const canvas = document.getElementById('puzzleCanvas');
         const ctx = canvas.getContext('2d');
-        const img = new Image();
-        img.src = 'puzzle_image.jpg';
+        // --- Updated for Multiple Images ---
+const puzzleList = [
+    'puzzle_image.jpg.WEBP', 
+    'puzzle2.jpg.WEBP', 
+    'puzzle3.jpg.WEBP', 
+    'puzzle4.jpg.WEBP',
+    'puzzle5.jpg.WEBP',
+    'puzzle6.jpg.WEBP'
+];
+let currentIdx = 0;
 
+const canvas = document.getElementById('puzzleCanvas');
+const ctx = canvas.getContext('2d');
+const img = new Image();
+img.src = puzzleList[currentIdx]; // This loads the first image automatically
+function changeImage(dir) {
+    currentIdx = (currentIdx + dir + puzzleList.length) % puzzleList.length;
+    img.src = puzzleList[currentIdx];
+    document.getElementById('main-preview').src = img.src;
+}
         let pieces = [], grabbed = null, cols, rows, pW, pH, startTime, timerInt, isVS = false;
 
         function showScreen(id) {
